@@ -47,7 +47,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Get(int id)
         {
-            var existing = this.productService.GetById(id);
+            var currentUser = this.userService.GetCurrentUser(HttpContext);
+
+            var existing = this.productService.GetById(id, currentUser);
 
             if (existing == null)
             {
@@ -74,7 +76,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Put(int id, [FromBody]Products product)
         {
-            var result = this.productService.Update(id, product);
+            User currentUser = this.userService.GetCurrentUser(HttpContext);
+
+            var result = this.productService.Update(id, product, currentUser);
 
             if (result == null)
             {
@@ -90,7 +94,7 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
         {
-            var employee = this.userService.GetCurrentUser(HttpContext);
+            User employee = this.userService.GetCurrentUser(HttpContext);
 
             var result = this.productService.Delete(id, employee);
 

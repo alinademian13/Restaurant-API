@@ -10,11 +10,11 @@ namespace OrderFoodApp.Services
     {
         List<ProductGetModel> GetAllByCategoryId(int categoryId, User currentUser);
 
-        Products GetById(int id);
+        Products GetById(int id, User currentUser);
 
         Products Create(ProductPostModel product, int categoryId, User employee);
 
-        Products Update(int id, Products product);
+        Products Update(int id, Products product, User employee);
 
         Products Delete(int id, User employee);
     }
@@ -43,9 +43,18 @@ namespace OrderFoodApp.Services
                 .Select(p => ProductGetModel.DtoFromModel(p)).ToList();
         }
 
-        public Products GetById(int id)
+        public Products GetById(int id, User currentUser)
         {
-            return context.Products.AsNoTracking().FirstOrDefault(p => p.Id == id);
+            var employee = context.Employees.FirstOrDefault(e => e.UserId == currentUser.Id);
+
+            Products productById = context.Products.AsNoTracking().FirstOrDefault(p => p.Id == id);
+
+            if (employee.RestaurantId != productById.Category.RestaurantId)
+            {
+                return null;
+            }
+
+            return productById;
         }
 
         public Products Create(ProductPostModel product, int categoryId, User employee)
@@ -63,9 +72,9 @@ namespace OrderFoodApp.Services
             return productToAdd;
         }
 
-        public Products Update(int id, Products product)
+        public Products Update(int id, Products product, User employee)
         {
-            var existing = GetById(id);
+            var existing = GetById(id, employee);
 
             if (existing ==  null)
             {
@@ -82,7 +91,7 @@ namespace OrderFoodApp.Services
 
         public Products Delete(int id, User employee)
         {
-            var existing = GetById(id);
+            var existing = GetById(id, employee);
 
             if (existing == null)
             {
