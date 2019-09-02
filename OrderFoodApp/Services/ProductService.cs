@@ -1,20 +1,20 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using OrderFoodApp.DTO;
 using OrderFoodApp.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace OrderFoodApp.Services
 {
     public interface IProductService
     {
+        List<ProductGetModel> GetAllByCategoryId(int categoryId, User currentUser);
+
         Products GetById(int id);
 
         Products Create(ProductPostModel product, int categoryId, User employee);
 
-        Products Update(int id, Products product, User employee);
+        Products Update(int id, Products product);
 
         Products Delete(int id, User employee);
     }
@@ -27,6 +27,20 @@ namespace OrderFoodApp.Services
         {
             this.context = context;
             this.categoryService = categoryService;
+        }
+
+        public List<ProductGetModel> GetAllByCategoryId(int categoryId, User currentUser)
+        {
+            var existingCategory = this.categoryService.GetById(categoryId, currentUser);
+
+            if (existingCategory == null)
+            {
+                return null;
+            }
+
+            return context.Products
+                .Where(p => p.CategoryId == categoryId)
+                .Select(p => ProductGetModel.DtoFromModel(p)).ToList();
         }
 
         public Products GetById(int id)
@@ -49,14 +63,36 @@ namespace OrderFoodApp.Services
             return productToAdd;
         }
 
-        public Products Update(int id, Products product, User employee)
+        public Products Update(int id, Products product)
         {
-            throw new NotImplementedException();
+            var existing = GetById(id);
+
+            if (existing ==  null)
+            {
+                return null;
+            }
+
+            product.Id = id;
+
+            context.Products.Update(product);
+            context.SaveChanges();
+
+            return product;
         }
 
         public Products Delete(int id, User employee)
         {
-            throw new NotImplementedException();
+            var existing = GetById(id);
+
+            if (existing == null)
+            {
+                return null;
+            }
+
+            context.Products.Remove(existing);
+            context.SaveChanges();
+
+            return existing;
         }
     }
 }

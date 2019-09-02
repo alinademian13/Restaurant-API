@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,19 +13,23 @@ namespace OrderFoodApp.Controllers
     public class RestaurantsController : ControllerBase
     {
         private IRestaurantService restaurantService;
-        private IUsersService usersService;
+        private IUserService userService;
 
-        public RestaurantsController(IRestaurantService restaurantService, IUsersService usersService)
+        public RestaurantsController(IRestaurantService restaurantService, IUserService userService)
         {
             this.restaurantService = restaurantService;
-            this.usersService = usersService;
+            this.userService = userService;
         }
 
         [HttpGet]
+        [Authorize(Roles = "Admin,Regular")]
         public PaginatedList<RestaurantGetModel> GetAll([FromQuery]int page = 1)
         {
             page = Math.Max(page, 1);
-            return restaurantService.GetAll(page);
+
+            User currentUser = this.userService.GetCurrentUser(HttpContext);
+
+            return restaurantService.GetAll(page, currentUser);
         }
 
         [HttpGet("{id}")]
@@ -37,16 +38,18 @@ namespace OrderFoodApp.Controllers
         public IActionResult Get(int id)
         {
             var existing = this.restaurantService.GetById(id);
+
             if (existing == null)
             {
                 return NotFound();
             }
+
             return Ok(existing);
         }
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public void Post([FromBody] RestaurantPostModel restaurant)
         {
@@ -60,62 +63,32 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Put(int id, [FromBody] Restaurant restaurant)
         {
-            var result = restaurantService.Update(id, restaurant);
+            User currentUser = this.userService.GetCurrentUser(HttpContext);
+
+            var result = restaurantService.Update(id, restaurant, currentUser);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
             return Ok(result);
         }
 
         [HttpPut("{id}/change-status")]
-        [Authorize(Roles = "Admin,Employee")]
+        [Authorize(Roles = "Admin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult ChangeStatus(int id)
         {
             var result = restaurantService.ChangeStatus(id);
+
             if (result ==  null)
             {
                 return NotFound();
             }
+
             return Ok(result);
-        }
-
-        [HttpPost("{restaurantId}/new-employee")]
-        [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult AddEmployee(int restaurantId, [FromBody]RegisterModel employee)
-        {
-            var existing = this.restaurantService.GetById(restaurantId);
-
-            if (existing == null)
-            {
-                return NotFound();
-            }
-
-            var employeeToAdd = restaurantService.AddEmployee(restaurantId, employee);
-
-            if (employeeToAdd == null)
-            {
-                return BadRequest(new { ErrorMessage = "Email address already exists." });
-            }
-
-            return Ok(employeeToAdd);
-        }
-
-        [Authorize(Roles = "Admin")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [HttpGet("{restaurantId}/employees")]
-        public IActionResult GetEmployeesForRestaurant(int restaurantId)
-        {
-            //List<User> employees = restaurantService.GetEmployeesForRestaurant(restaurantId);
-            //return employees;
-            return Ok(restaurantService.GetEmployeesForRestaurant(restaurantId));
-        }
-
-        [HttpGet("{restaurantId}/categories")]
-        public IActionResult GetCategoriesForRestaurant(int restaurantId)
-        {
-            return Ok(restaurantService.GetCategoriesForRestaurant(restaurantId));
         }
     }
 }
