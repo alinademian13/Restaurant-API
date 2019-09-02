@@ -58,9 +58,10 @@ namespace OrderFoodApp
             });
 
             // Dependency Injection
-            services.AddScoped<IUsersService, UserService>();
+            services.AddScoped<IUserService, UserService>();
             services.AddScoped<IRestaurantService, RestaurantService>();
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IEmployeeService, EmployeeService>();
 
         }
 
