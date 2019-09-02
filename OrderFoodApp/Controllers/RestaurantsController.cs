@@ -102,6 +102,16 @@ namespace OrderFoodApp.Controllers
             return Ok(employeeToAdd);
         }
 
+        [Authorize(Roles = "Admin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpGet("{restaurantId}/employees")]
+        public IActionResult GetEmployeesForRestaurant(int restaurantId)
+        {
+            //List<User> employees = restaurantService.GetEmployeesForRestaurant(restaurantId);
+            //return employees;
+            return Ok(restaurantService.GetEmployeesForRestaurant(restaurantId));
+        }
+
         [HttpGet("{restaurantId}/categories")]
         public IActionResult GetCategoriesForRestaurant(int restaurantId)
         {

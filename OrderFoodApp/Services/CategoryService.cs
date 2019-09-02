@@ -11,8 +11,6 @@ namespace OrderFoodApp.Services
 {
     public interface ICategoryService
     {
-        //PaginatedList<CategoryGetModel> GetAll(int page);
-
         Category GetById(int id, User currentUser);
 
         Category Create(CategoryPostModel category, User employee);
@@ -20,40 +18,18 @@ namespace OrderFoodApp.Services
         Category Update(int id, Category category, User employee);
 
         Category ChangeStatus(int id, User employee);
+
+        List<ProductGetModel> GetProductsForCategory(int categoryId, User employee);
     }
 
     public class CategoryService : ICategoryService
     {
         private RestaurantDbContext context;
-        private IUsersService usersService;
-        private IRestaurantService restaurantService;
 
-        public CategoryService(RestaurantDbContext context, IUsersService usersService, IRestaurantService restaurantService)
+        public CategoryService(RestaurantDbContext context)
         {
             this.context = context;
-            this.usersService = usersService;
-            this.restaurantService = restaurantService;
         }
-
-        //public PaginatedList<CategoryGetModel> GetAll(int page)
-        //{
-        //    IQueryable<Category> result = context
-        //        .Categories
-        //        .OrderBy(c => c.IsActive);
-
-        //    PaginatedList<CategoryGetModel> paginatedResult = new PaginatedList<CategoryGetModel>();
-        //    paginatedResult.CurrentPage = page;
-
-        //    paginatedResult.NumberOfPages = (result.Count() - 1) / PaginatedList<CategoryGetModel>.EntriesPerPage + 1;
-
-        //    result = result
-        //        .Skip((page - 1) * PaginatedList<CategoryGetModel>.EntriesPerPage)
-        //        .Take(PaginatedList<CategoryGetModel>.EntriesPerPage);
-
-        //    paginatedResult.Entries = result.Select(c => CategoryGetModel.DtoFromModel(c)).ToList();
-
-        //    return paginatedResult;
-        //}
 
         public Category GetById(int id, User currentUser)
         {
@@ -112,6 +88,22 @@ namespace OrderFoodApp.Services
             context.Categories.Update(existing);
             context.SaveChanges();
             return existing;
+        }
+
+        public List<ProductGetModel> GetProductsForCategory(int categoryId, User employee)
+        {
+            var existingCategory = GetById(categoryId, employee);
+
+            if (existingCategory == null)
+            {
+                return null;
+            }
+
+            var result = context.Products
+                .Where(p => p.CategoryId == categoryId)
+                .Select(p => ProductGetModel.DtoFromModel(p)).ToList();
+
+            return result;
         }
 
     }

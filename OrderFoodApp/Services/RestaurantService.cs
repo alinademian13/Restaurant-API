@@ -22,6 +22,8 @@ namespace OrderFoodApp.Services
 
         User AddEmployee(int restaurantId, RegisterModel employee);
 
+        List<User> GetEmployeesForRestaurant(int restaurantId);
+
         List<CategoryGetModel> GetCategoriesForRestaurant(int restaurantId);
     }
 
@@ -62,13 +64,14 @@ namespace OrderFoodApp.Services
         {
             IQueryable<Restaurant> result = context
                 .Restaurants
-                .OrderBy(r => r.Name)
-                .Where(r => r.IsActive == true);
+                .OrderBy(r => r.IsActive ? 0 : 1);
+                //.OrderBy(r => r.IsActive);
+                //.Where(r => r.IsActive == true);
 
             PaginatedList<RestaurantGetModel> paginatedResult = new PaginatedList<RestaurantGetModel>();
             paginatedResult.CurrentPage = page;
-
-            paginatedResult.NumberOfPages = (result.Count() - 1) / PaginatedList<RestaurantGetModel>.EntriesPerPage + 1;
+            paginatedResult.NumberOfEntries = result.Count();
+            paginatedResult.NumberOfPages = (paginatedResult.NumberOfEntries - 1) / PaginatedList<RestaurantGetModel>.EntriesPerPage + 1;
 
             result = result
                 .Skip((page - 1) * PaginatedList<RestaurantGetModel>.EntriesPerPage)
@@ -111,6 +114,11 @@ namespace OrderFoodApp.Services
 
             User employeeToAdd = usersService.Create(employee, Role.Employee);
 
+            if (employeeToAdd == null)
+            {
+                return null;
+            }
+
             var newEmployee = new Employee
             {
                 UserId = employeeToAdd.Id,
@@ -123,6 +131,21 @@ namespace OrderFoodApp.Services
             return employeeToAdd;
         }
 
+        public List<User> GetEmployeesForRestaurant(int restaurantId)
+        {
+            var existingRestaurant = GetById(restaurantId);
+
+            if (existingRestaurant == null)
+            {
+                return null;
+            }
+
+            var userIds = context.Employees.Where(e => e.RestaurantId == restaurantId).Select(e => e.UserId).ToList();
+
+            return context.Users
+                .Where(u => u.UserRole == Role.Employee && userIds.Contains(u.Id)).ToList();
+        }
+
         public List<CategoryGetModel> GetCategoriesForRestaurant(int restaurantId)
         {
             var existingRestaurant = GetById(restaurantId);
@@ -132,8 +155,8 @@ namespace OrderFoodApp.Services
                 return null;
             }
 
-            var result = context.Categories.
-                Where(c => c.IsActive == true && c.RestaurantId == restaurantId)
+            var result = context.Categories
+                .Where(c => c.IsActive == true && c.RestaurantId == restaurantId)
                 .Select(c => new CategoryGetModel()
                 {
                     Id = c.Id,

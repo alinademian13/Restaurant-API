@@ -73,7 +73,8 @@ namespace OrderFoodApp.Services
             {
                 Id = user.Id,
                 Email = user.Email,
-                Token = tokenHandler.WriteToken(token)
+                Token = tokenHandler.WriteToken(token),
+                UserRole = user.UserRole
             };
             // remove password before returning
             return result;

@@ -25,13 +25,6 @@ namespace OrderFoodApp.Controllers
             this.usersService = usersService;
         }
 
-        //[HttpGet]
-        //public PaginatedList<CategoryGetModel> GetAll([FromQuery]int page = 1)
-        //{
-        //    page = Math.Max(page, 1);
-        //    return categoryService.GetAll(page);
-        //}
-
         [HttpGet("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -88,8 +81,18 @@ namespace OrderFoodApp.Controllers
             {
                 return NotFound();
             }
-
             return Ok(result);
+        }
+
+        public IActionResult GetProductsForCategory(int categoryId)
+        {
+            var currentUser = usersService.GetCurrentUser(HttpContext);
+            var existing = this.categoryService.GetById(categoryId, currentUser);
+            if (existing == null)
+            {
+                return NotFound();
+            }
+            return Ok(categoryService.GetProductsForCategory(categoryId, currentUser));
         }
 
     }
