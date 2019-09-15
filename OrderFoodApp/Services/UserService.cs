@@ -76,6 +76,14 @@ namespace OrderFoodApp.Services
                 Token = tokenHandler.WriteToken(token),
                 UserRole = user.UserRole
             };
+
+            var restaurantId = context.Employees.Where(e => e.UserId == user.Id).Select(e => e.RestaurantId).FirstOrDefault();
+
+            if (user.UserRole == Role.Employee)
+            {
+                result.RestaurantId = restaurantId;
+            };
+
             // remove password before returning
             return result;
         }
@@ -148,11 +156,18 @@ namespace OrderFoodApp.Services
 
         public User GetCurrentUser(HttpContext httpContext)
         {
-            string email = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
+            var user = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name);
+
+            if (user == null)
+            {
+                return null;
+            }
+
+            //string email = httpContext.User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Name).Value;
 
             return context
                 .Users
-                .FirstOrDefault(u => u.Email == email);
+                .FirstOrDefault(u => u.Email == user.Value);
         }
 
         public User GetUserById(int id)

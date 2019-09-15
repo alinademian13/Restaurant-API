@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OrderFoodApp.DTO;
+using OrderFoodApp.Models;
 using OrderFoodApp.Services;
 
 namespace OrderFoodApp.Controllers
@@ -24,7 +26,14 @@ namespace OrderFoodApp.Controllers
             this.usersService = usersService;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("categories/{categoryId}/products")]
+        public IActionResult GetAllByCategoryId(int categoryId)
+        {
+            return Ok(this.productService.GetAllByCategoryId(categoryId));
+        }
+
+        [HttpGet("products/{id}")]
+        [Authorize(Roles = "Employee")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Get(int id)
@@ -37,12 +46,49 @@ namespace OrderFoodApp.Controllers
             return Ok(existing);
         }
 
-        [HttpPost]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [HttpPost("products")]
+        [Authorize(Roles = "Employee")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public void Post([FromBody]ProductPostModel product)
         {
+            productService.Create(product);
+        }
 
+        [HttpPut("products/{id}")]
+        [Authorize(Roles = "Employee")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Put(int id, [FromBody]Products product)
+        {
+            User currentUser = this.usersService.GetCurrentUser(HttpContext);
+
+            var result = this.productService.Update(id, product, currentUser);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
+        }
+
+        [HttpDelete("products/{id}")]
+        [Authorize(Roles = "Employee")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Delete(int id)
+        {
+            User employee = this.usersService.GetCurrentUser(HttpContext);
+
+            var result = this.productService.Delete(id, employee);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(result);
         }
     }
 }

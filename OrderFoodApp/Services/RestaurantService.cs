@@ -50,6 +50,7 @@ namespace OrderFoodApp.Services
         {
             var existing = GetById(id);
             if (existing == null)
+            //if (currentUser == null || currentUser.UserRole != Role.Admin)
             {
                 return null;
             }

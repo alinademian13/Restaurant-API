@@ -25,14 +25,26 @@ namespace OrderFoodApp.Controllers
             this.usersService = usersService;
         }
 
-        [HttpGet("{id}")]
+        [HttpGet("restaurants/{restaurantId}/categories")]
+        public IActionResult GetAllByRestaurantId(int restaurantId)
+        {
+            User currentUser = this.usersService.GetCurrentUser(HttpContext);
+
+            return Ok(categoryService.GetAllByRestaurantId(restaurantId, currentUser));
+        }
+
+        [HttpGet("categories/{id}")]
+        [Authorize(Roles = "Employee")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Get(int id)
         {
             var currentUser = usersService.GetCurrentUser(HttpContext);
 
-            var existing = this.categoryService.GetById(id, currentUser);
+            //var existing = this.categoryService.GetById(id, currentUser);
+
+            var existing = this.categoryService.GetById(id);
+
             if (existing == null)
             {
                 return NotFound();
@@ -58,7 +70,9 @@ namespace OrderFoodApp.Controllers
         {
             var currentUser = usersService.GetCurrentUser(HttpContext);
 
-            var result = categoryService.Update(id, category, currentUser);
+            //var result = categoryService.Update(id, category, currentUser);
+
+            var result = this.categoryService.Update(id, category);
 
             if (result == null)
             {
@@ -75,7 +89,9 @@ namespace OrderFoodApp.Controllers
         {
             var currentUser = usersService.GetCurrentUser(HttpContext);
 
-            var result = categoryService.ChangeStatus(id, currentUser);
+            //var result = categoryService.ChangeStatus(id, currentUser);
+
+            var result = categoryService.ChangeStatus(id);
 
             if (result == null)
             {
@@ -83,17 +99,5 @@ namespace OrderFoodApp.Controllers
             }
             return Ok(result);
         }
-
-        public IActionResult GetProductsForCategory(int categoryId)
-        {
-            var currentUser = usersService.GetCurrentUser(HttpContext);
-            var existing = this.categoryService.GetById(categoryId, currentUser);
-            if (existing == null)
-            {
-                return NotFound();
-            }
-            return Ok(categoryService.GetProductsForCategory(categoryId, currentUser));
-        }
-
     }
 }
