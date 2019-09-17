@@ -16,9 +16,9 @@ namespace OrderFoodApp.Controllers
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private IUsersService _userService;
+        private IUserService _userService;
 
-        public UsersController(IUsersService userService)
+        public UsersController(IUserService userService)
         {
             _userService = userService;
         }
@@ -39,7 +39,7 @@ namespace OrderFoodApp.Controllers
 
         [AllowAnonymous]
         [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Register([FromBody]RegisterModel registerModel)
         {

@@ -1,26 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using OrderFoodApp.DTO;
 using OrderFoodApp.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace OrderFoodApp.Services
 {
     public interface ICategoryService
     {
-        //Category GetById(int id, User currentUser);
         List<CategoryGetModel> GetAllByRestaurantId(int restaurantId, User currentUser);
 
         Category GetById(int id);
 
+        //Category GetById(int id, User currentUser);
+
         Category Create(CategoryPostModel category, User employee);
 
         Category Update(int id, Category category);
-
-        //Category ChangeStatus(int id, User employee);
 
         Category ChangeStatus(int id);
     }
@@ -73,7 +69,6 @@ namespace OrderFoodApp.Services
 
         public Category GetById(int id)
         {
-
             return context.Categories.AsNoTracking().FirstOrDefault(c => c.Id == id);
         }
 
@@ -83,11 +78,9 @@ namespace OrderFoodApp.Services
                 .Employees.FirstOrDefault(r => r.UserId == employee.Id).RestaurantId;
 
             Category categoryToAdd = CategoryPostModel.ToCategory(category);
-
             categoryToAdd.RestaurantId = restaurantIdForEmployee;
 
             context.Categories.Add(categoryToAdd);
-
             context.SaveChanges();
 
             return categoryToAdd;
@@ -95,9 +88,6 @@ namespace OrderFoodApp.Services
 
         public Category Update(int id, Category category)
         {
-            //var existing = GetById(id, employee);
-            //if(existing == null)
-
             var existing = GetById(id);
 
             if (existing == null)
@@ -108,24 +98,27 @@ namespace OrderFoodApp.Services
             category.Id = id;
             category.RestaurantId = existing.RestaurantId;
             category.IsActive = existing.IsActive;
+
             context.Categories.Update(category);
             context.SaveChanges();
+
             return category;
         }
 
         public Category ChangeStatus(int id)
         {
-            //var existing = GetById(id, employee);
-
             var existing = GetById(id);
 
             if (existing == null)
             {
                 return null;
             }
+
             existing.IsActive = !existing.IsActive;
+
             context.Categories.Update(existing);
             context.SaveChanges();
+
             return existing;
         }
     }

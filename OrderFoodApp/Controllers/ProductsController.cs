@@ -1,7 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,19 +7,19 @@ using OrderFoodApp.Services;
 
 namespace OrderFoodApp.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api")]
     [ApiController]
     public class ProductsController : ControllerBase
     {
         private IProductService productService;
+        private IUserService userService;
         private ICategoryService categoryService;
-        private IUsersService usersService;
 
-        public ProductsController(IProductService productService, ICategoryService categoryService, IUsersService usersService)
+        public ProductsController(IProductService productService, IUserService userService, ICategoryService categoryService)
         {
             this.productService = productService;
+            this.userService = userService;
             this.categoryService = categoryService;
-            this.usersService = usersService;
         }
 
         [HttpGet("categories/{categoryId}/products")]
@@ -38,11 +34,15 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Get(int id)
         {
-            var existing = this.productService.GetById(id);
+            var currentUser = this.userService.GetCurrentUser(HttpContext);
+
+            var existing = this.productService.GetById(id, currentUser);
+
             if (existing == null)
             {
                 return NotFound();
             }
+
             return Ok(existing);
         }
 
@@ -61,7 +61,7 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Put(int id, [FromBody]Products product)
         {
-            User currentUser = this.usersService.GetCurrentUser(HttpContext);
+            User currentUser = this.userService.GetCurrentUser(HttpContext);
 
             var result = this.productService.Update(id, product, currentUser);
 
@@ -76,10 +76,10 @@ namespace OrderFoodApp.Controllers
         [HttpDelete("products/{id}")]
         [Authorize(Roles = "Employee")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Delete(int id)
         {
-            User employee = this.usersService.GetCurrentUser(HttpContext);
+            User employee = this.userService.GetCurrentUser(HttpContext);
 
             var result = this.productService.Delete(id, employee);
 

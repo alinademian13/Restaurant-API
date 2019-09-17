@@ -11,11 +11,10 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace OrderFoodApp.Services
 {
-    public interface IUsersService
+    public interface IUserService
     {
         LoginGetModel Authenticate(string email, string password);
 
@@ -34,7 +33,7 @@ namespace OrderFoodApp.Services
         User DeleteUser(int id);
     }
 
-    public class UserService : IUsersService
+    public class UserService : IUserService
     {
         private RestaurantDbContext context;
         private readonly AppSettings appSettings;
@@ -185,17 +184,19 @@ namespace OrderFoodApp.Services
             user.Password = ComputeSha256Hash(userToBeUpdated.Password);
             context.Users.Update(user);
             context.SaveChanges();
-            return user;
 
+            return user;
         }
 
         public User DeleteUser(int id)
         {
             var existing = context.Users.FirstOrDefault(user => user.Id == id);
+
             if (existing == null)
             {
                 return null;
             }
+
             context.Users.Remove(existing);
             context.SaveChanges();
 
