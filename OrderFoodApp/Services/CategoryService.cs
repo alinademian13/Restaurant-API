@@ -10,13 +10,15 @@ namespace OrderFoodApp.Services
     {
         List<CategoryGetModel> GetAllByRestaurantId(int restaurantId, User currentUser);
 
-        Category GetById(int id, User currentUser);
+        Category GetById(int id);
+
+        //Category GetById(int id, User currentUser);
 
         Category Create(CategoryPostModel category, User employee);
 
-        Category Update(int id, Category category, User employee);
+        Category Update(int id, Category category);
 
-        Category ChangeStatus(int id, User employee);
+        Category ChangeStatus(int id);
     }
 
     public class CategoryService : ICategoryService
@@ -39,35 +41,35 @@ namespace OrderFoodApp.Services
                 return null;
             }
 
-            var result = context.Categories
-                .Where(c => c.IsActive == true && c.RestaurantId == restaurantId)
-                .Select(c => new CategoryGetModel()
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    IsActive = c.IsActive
-                });
+            var result = context.Categories.Where(c => c.RestaurantId == restaurantId);
 
-            if (currentUser.UserRole == Role.Regular)
+            if (currentUser != null && currentUser.UserRole == Role.Employee)
+            {
+                var employeeRestaurantId = context.Employees.Where(e => e.UserId == currentUser.Id).Select(e => e.RestaurantId).FirstOrDefault();
+
+                if (employeeRestaurantId != restaurantId)
+                {
+                    result = result.Where(c => c.IsActive == true);
+                }
+            }
+            else
             {
                 result = result.Where(c => c.IsActive == true);
             }
 
-            return result.ToList();
+            return result
+                .Select(c => new CategoryGetModel()
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        IsActive = c.IsActive
+                    })
+                .ToList();
         }
 
-        public Category GetById(int id, User currentUser)
+        public Category GetById(int id)
         {
-            var employee = context.Employees.FirstOrDefault(e => e.UserId == currentUser.Id);
-
-            Category categoryById = context.Categories.AsNoTracking().FirstOrDefault(c => c.Id == id);
-
-            if (employee.RestaurantId != categoryById.RestaurantId)
-            {
-                return null;
-            }
-
-            return categoryById;
+            return context.Categories.AsNoTracking().FirstOrDefault(c => c.Id == id);
         }
 
         public Category Create(CategoryPostModel category, User employee)
@@ -84,9 +86,9 @@ namespace OrderFoodApp.Services
             return categoryToAdd;
         }
 
-        public Category Update(int id, Category category, User employee)
+        public Category Update(int id, Category category)
         {
-            var existing = GetById(id, employee);
+            var existing = GetById(id);
 
             if (existing == null)
             {
@@ -103,9 +105,9 @@ namespace OrderFoodApp.Services
             return category;
         }
 
-        public Category ChangeStatus(int id, User employee)
+        public Category ChangeStatus(int id)
         {
-            var existing = GetById(id, employee);
+            var existing = GetById(id);
 
             if (existing == null)
             {

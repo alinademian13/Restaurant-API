@@ -8,11 +8,10 @@ namespace OrderFoodApp.Services
 {
     public interface IProductService
     {
-        List<ProductGetModel> GetAllByCategoryId(int categoryId, User currentUser);
+        Products GetById(int id, User employee);
+        List<ProductGetModel> GetAllByCategoryId(int categoryId);
 
-        Products GetById(int id, User currentUser);
-
-        Products Create(ProductPostModel product, int categoryId, User employee);
+        Products Create(ProductPostModel product);
 
         Products Update(int id, Products product, User employee);
 
@@ -29,9 +28,9 @@ namespace OrderFoodApp.Services
             this.categoryService = categoryService;
         }
 
-        public List<ProductGetModel> GetAllByCategoryId(int categoryId, User currentUser)
+        public List<ProductGetModel> GetAllByCategoryId(int categoryId)
         {
-            var existingCategory = this.categoryService.GetById(categoryId, currentUser);
+            var existingCategory = this.categoryService.GetById(categoryId);
 
             if (existingCategory == null)
             {
@@ -43,13 +42,33 @@ namespace OrderFoodApp.Services
                 .Select(p => ProductGetModel.DtoFromModel(p)).ToList();
         }
 
+        //public Products GetById(int id, User currentUser)
+        //{
+        //    var employee = context.Employees.FirstOrDefault(e => e.UserId == currentUser.Id);
+
+        //    Products productById = context.Products.AsNoTracking().FirstOrDefault(p => p.Id == id);
+
+        //    if (employee.RestaurantId != productById.Category.RestaurantId)
+        //    {
+        //        return null;
+        //    }
+
+        //    return productById;
+        //}
+
         public Products GetById(int id, User currentUser)
         {
             var employee = context.Employees.FirstOrDefault(e => e.UserId == currentUser.Id);
 
-            Products productById = context.Products.AsNoTracking().FirstOrDefault(p => p.Id == id);
+            Products productById = context.Products
+                                    .AsNoTracking()
+                                    .FirstOrDefault(p => p.Id == id);
 
-            if (employee.RestaurantId != productById.Category.RestaurantId)
+            Category categoryById = context.Categories
+                                    .AsNoTracking()
+                                    .FirstOrDefault(c => c.Id == productById.CategoryId);
+
+            if (categoryById == null || employee.RestaurantId != categoryById.RestaurantId)
             {
                 return null;
             }
@@ -57,11 +76,11 @@ namespace OrderFoodApp.Services
             return productById;
         }
 
-        public Products Create(ProductPostModel product, int categoryId, User employee)
+        public Products Create(ProductPostModel product)
         {
-            Category category = categoryService.GetById(categoryId, employee);
-
             Products productToAdd = ProductPostModel.ToProduct(product);
+
+            Category category = categoryService.GetById(productToAdd.CategoryId);
 
             productToAdd.CategoryId = category.Id;
 
@@ -76,7 +95,7 @@ namespace OrderFoodApp.Services
         {
             var existing = GetById(id, employee);
 
-            if (existing ==  null)
+            if (existing == null)
             {
                 return null;
             }
