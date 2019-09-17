@@ -33,7 +33,7 @@ namespace OrderFoodApp.Services
                 .Restaurants
                 .OrderBy(r => r.IsActive ? 0 : 1);
 
-            if (currentUser.UserRole == Role.Regular)
+            if (currentUser == null || currentUser.UserRole != Role.Admin)
             {
                 result = result.Where(r => r.IsActive == true);
             }

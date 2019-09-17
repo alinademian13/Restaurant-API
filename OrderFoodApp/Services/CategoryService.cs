@@ -10,15 +10,13 @@ namespace OrderFoodApp.Services
     {
         List<CategoryGetModel> GetAllByRestaurantId(int restaurantId, User currentUser);
 
-        Category GetById(int id);
-
-        //Category GetById(int id, User currentUser);
+        Category GetById(int id, User currentUser);
 
         Category Create(CategoryPostModel category, User employee);
 
-        Category Update(int id, Category category);
+        Category Update(int id, Category category, User employee);
 
-        Category ChangeStatus(int id);
+        Category ChangeStatus(int id, User employee);
     }
 
     public class CategoryService : ICategoryService
@@ -67,9 +65,22 @@ namespace OrderFoodApp.Services
                 .ToList();
         }
 
-        public Category GetById(int id)
+        public Category GetById(int id, User currentUser)
         {
-            return context.Categories.AsNoTracking().FirstOrDefault(c => c.Id == id);
+            Category category = context.Categories.AsNoTracking().FirstOrDefault(c => c.Id == id);
+
+            if (currentUser != null && currentUser.UserRole == Role.Employee)
+            {
+                int restaurantIdForEmployee = context
+                        .Employees.FirstOrDefault(r => r.UserId == currentUser.Id).RestaurantId;
+
+                if (category != null && category.RestaurantId != restaurantIdForEmployee)
+                {
+                    return null;
+                }
+            }  
+
+            return category;
         }
 
         public Category Create(CategoryPostModel category, User employee)
@@ -86,9 +97,9 @@ namespace OrderFoodApp.Services
             return categoryToAdd;
         }
 
-        public Category Update(int id, Category category)
+        public Category Update(int id, Category category, User employee)
         {
-            var existing = GetById(id);
+            var existing = GetById(id, employee);
 
             if (existing == null)
             {
@@ -105,9 +116,9 @@ namespace OrderFoodApp.Services
             return category;
         }
 
-        public Category ChangeStatus(int id)
+        public Category ChangeStatus(int id, User employee)
         {
-            var existing = GetById(id);
+            var existing = GetById(id, employee);
 
             if (existing == null)
             {

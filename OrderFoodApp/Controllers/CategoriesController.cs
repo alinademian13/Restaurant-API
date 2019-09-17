@@ -34,7 +34,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Get(int id)
         {
-            var existing = this.categoryService.GetById(id);
+            User employee = this.userService.GetCurrentUser(HttpContext);
+
+            var existing = this.categoryService.GetById(id, employee);
 
             if (existing == null)
             {
@@ -62,7 +64,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Put(int id, [FromBody] Category category)
         {
-            var result = this.categoryService.Update(id, category);
+            User employee = this.userService.GetCurrentUser(HttpContext);
+
+            var result = this.categoryService.Update(id, category, employee);
 
             if (result == null)
             {
@@ -78,7 +82,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult ChangeStatus(int id)
         {
-            var result = categoryService.ChangeStatus(id);
+            User employee = this.userService.GetCurrentUser(HttpContext);
+
+            var result = categoryService.ChangeStatus(id, employee);
 
             if (result == null)
             {
