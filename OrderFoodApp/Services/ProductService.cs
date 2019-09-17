@@ -9,9 +9,9 @@ namespace OrderFoodApp.Services
     public interface IProductService
     {
         Products GetById(int id, User employee);
-        List<ProductGetModel> GetAllByCategoryId(int categoryId);
+        List<ProductGetModel> GetAllByCategoryId(int categoryId, User currentUser);
 
-        Products Create(ProductPostModel product);
+        Products Create(ProductPostModel product, User employee);
 
         Products Update(int id, Products product, User employee);
 
@@ -28,9 +28,9 @@ namespace OrderFoodApp.Services
             this.categoryService = categoryService;
         }
 
-        public List<ProductGetModel> GetAllByCategoryId(int categoryId)
+        public List<ProductGetModel> GetAllByCategoryId(int categoryId, User currentUser)
         {
-            var existingCategory = this.categoryService.GetById(categoryId);
+            var existingCategory = this.categoryService.GetById(categoryId, currentUser);
 
             if (existingCategory == null)
             {
@@ -76,11 +76,11 @@ namespace OrderFoodApp.Services
             return productById;
         }
 
-        public Products Create(ProductPostModel product)
+        public Products Create(ProductPostModel product, User employee)
         {
             Products productToAdd = ProductPostModel.ToProduct(product);
 
-            Category category = categoryService.GetById(productToAdd.CategoryId);
+            Category category = categoryService.GetById(productToAdd.CategoryId, employee);
 
             productToAdd.CategoryId = category.Id;
 

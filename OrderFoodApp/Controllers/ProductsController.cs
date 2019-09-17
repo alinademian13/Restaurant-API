@@ -25,7 +25,9 @@ namespace OrderFoodApp.Controllers
         [HttpGet("categories/{categoryId}/products")]
         public IActionResult GetAllByCategoryId(int categoryId)
         {
-            return Ok(this.productService.GetAllByCategoryId(categoryId));
+            User currentUser = this.userService.GetCurrentUser(HttpContext);
+
+            return Ok(this.productService.GetAllByCategoryId(categoryId, currentUser));
         }
 
         [HttpGet("products/{id}")]
@@ -52,7 +54,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public void Post([FromBody]ProductPostModel product)
         {
-            productService.Create(product);
+            User employee = this.userService.GetCurrentUser(HttpContext);
+
+            productService.Create(product, employee);
         }
 
         [HttpPut("products/{id}")]
