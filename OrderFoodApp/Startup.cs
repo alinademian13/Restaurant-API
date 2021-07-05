@@ -62,7 +62,7 @@ namespace OrderFoodApp
             services.AddScoped<IRestaurantService, RestaurantService>();
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IEmployeeService, EmployeeService>();
-
+            services.AddScoped<IProductService, ProductService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

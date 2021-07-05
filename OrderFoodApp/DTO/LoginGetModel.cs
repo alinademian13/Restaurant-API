@@ -12,5 +12,6 @@ namespace OrderFoodApp.DTO
         public string Email { get; set; }
         public string Token { get; set; }
         public Role UserRole { get; set; }
+        public int RestaurantId { get; set; }
     }
 }

@@ -22,7 +22,6 @@ namespace OrderFoodApp.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Admin,Regular")]
         public PaginatedList<RestaurantGetModel> GetAll([FromQuery]int page = 1)
         {
             page = Math.Max(page, 1);

@@ -21,7 +21,6 @@ namespace OrderFoodApp.Controllers
         }
 
         [HttpGet("restaurants/{restaurantId}/categories")]
-        [Authorize(Roles = "Employee,Regular")]
         public IActionResult GetAllByRestaurantId(int restaurantId)
         {
             User currentUser = this.userService.GetCurrentUser(HttpContext);
@@ -35,9 +34,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult Get(int id)
         {
-            User currentUser = this.userService.GetCurrentUser(HttpContext);
+            User employee = this.userService.GetCurrentUser(HttpContext);
 
-            var existing = this.categoryService.GetById(id, currentUser);
+            var existing = this.categoryService.GetById(id, employee);
 
             if (existing == null)
             {
@@ -65,9 +64,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public IActionResult Put(int id, [FromBody] Category category)
         {
-            User currentUser = this.userService.GetCurrentUser(HttpContext);
+            User employee = this.userService.GetCurrentUser(HttpContext);
 
-            var result = this.categoryService.Update(id, category, currentUser);
+            var result = this.categoryService.Update(id, category, employee);
 
             if (result == null)
             {
@@ -83,9 +82,9 @@ namespace OrderFoodApp.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public IActionResult ChangeStatus(int id)
         {
-            User currentUser = this.userService.GetCurrentUser(HttpContext);
+            User employee = this.userService.GetCurrentUser(HttpContext);
 
-            var result = categoryService.ChangeStatus(id, currentUser);
+            var result = categoryService.ChangeStatus(id, employee);
 
             if (result == null)
             {

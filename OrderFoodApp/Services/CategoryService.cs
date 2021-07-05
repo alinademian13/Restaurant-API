@@ -39,35 +39,48 @@ namespace OrderFoodApp.Services
                 return null;
             }
 
-            var result = context.Categories
-                .Where(c => c.IsActive == true && c.RestaurantId == restaurantId)
-                .Select(c => new CategoryGetModel()
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    IsActive = c.IsActive
-                });
+            var result = context.Categories.Where(c => c.RestaurantId == restaurantId);
 
-            if (currentUser.UserRole == Role.Regular)
+            if (currentUser != null && currentUser.UserRole == Role.Employee)
+            {
+                var employeeRestaurantId = context.Employees.Where(e => e.UserId == currentUser.Id).Select(e => e.RestaurantId).FirstOrDefault();
+
+                if (employeeRestaurantId != restaurantId)
+                {
+                    result = result.Where(c => c.IsActive == true);
+                }
+            }
+            else
             {
                 result = result.Where(c => c.IsActive == true);
             }
 
-            return result.ToList();
+            return result
+                .Select(c => new CategoryGetModel()
+                    {
+                        Id = c.Id,
+                        Name = c.Name,
+                        IsActive = c.IsActive
+                    })
+                .ToList();
         }
 
         public Category GetById(int id, User currentUser)
         {
-            var employee = context.Employees.FirstOrDefault(e => e.UserId == currentUser.Id);
+            Category category = context.Categories.AsNoTracking().FirstOrDefault(c => c.Id == id);
 
-            Category categoryById = context.Categories.AsNoTracking().FirstOrDefault(c => c.Id == id);
-
-            if (employee.RestaurantId != categoryById.RestaurantId)
+            if (currentUser != null && currentUser.UserRole == Role.Employee)
             {
-                return null;
-            }
+                int restaurantIdForEmployee = context
+                        .Employees.FirstOrDefault(r => r.UserId == currentUser.Id).RestaurantId;
 
-            return categoryById;
+                if (category != null && category.RestaurantId != restaurantIdForEmployee)
+                {
+                    return null;
+                }
+            }  
+
+            return category;
         }
 
         public Category Create(CategoryPostModel category, User employee)

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using OrderFoodApp.DTO;
@@ -23,20 +23,9 @@ namespace OrderFoodApp.Controllers
         }
 
         [HttpGet("categories/{categoryId}/products")]
-        [Authorize(Roles = "Employee,Regular")]
         public IActionResult GetAllByCategoryId(int categoryId)
         {
-            var currentUser = this.userService.GetCurrentUser(HttpContext);
-
-            if (currentUser.UserRole == Role.Employee)
-            {
-                var existing = this.categoryService.GetById(categoryId, currentUser);
-
-                if (existing == null)
-                {
-                    return NotFound();
-                }
-            }
+            User currentUser = this.userService.GetCurrentUser(HttpContext);
 
             return Ok(this.productService.GetAllByCategoryId(categoryId, currentUser));
         }
@@ -63,11 +52,11 @@ namespace OrderFoodApp.Controllers
         [Authorize(Roles = "Employee")]
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public void Post([FromBody]ProductPostModel product, [FromBody]int categoryId)
+        public void Post([FromBody]ProductPostModel product)
         {
             User employee = this.userService.GetCurrentUser(HttpContext);
 
-            productService.Create(product, categoryId, employee);
+            productService.Create(product, employee);
         }
 
         [HttpPut("products/{id}")]
